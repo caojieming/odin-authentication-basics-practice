@@ -4,35 +4,52 @@ try {
 } catch(error) {}
 
 
-// standard express import
-const express = require("express");
-const app = express();
-
-// import the Path CommonJS module from Node
 const path = require("node:path");
+const { Pool } = require("pg");
+const express = require("express");
+const session = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require('passport-local').Strategy;
 
-// let code know we're using ejs as template engine as well as location of views folder
+const pool = new Pool({
+  // add your configuration
+  // host: process.env.HOST, 
+  // user: process.env.USER,
+  // database: process.env.DATABASE,
+  // password: process.env.PASSWORD,
+  // port: Number(process.env.DBPORT)
+  connectionString: process.env.LOCAL_DB_URL
+});
+
+const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-// setup path to static assets
-const assetsPath = path.join(__dirname, "public");
-app.use(express.static(assetsPath));
-
-// import routers
-const indexRouter = require("./routes/indexRouter");
+app.use(session({ secret: "cats", resave: false, saveUninitialized: false }));
+app.use(passport.session());
+app.use(express.urlencoded({ extended: false }));
 
 
-app.use(express.urlencoded({ extended: true }));
+// this is ew, but this is just meant to be practice
+app.get("/", (req, res) => res.render("index"));
 
-app.use("/", indexRouter);
+app.get("/sign-up", (req, res) => res.render("sign-up-form"));
+app.post("/sign-up", async (req, res, next) => {
+  try {
+    await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
+      req.body.username,
+      req.body.password,
+    ]);
+    res.redirect("/");
+  } catch(err) {
+    return next(err);
+  }
+});
 
 
-// open web server
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, (error) => {
+app.listen(3000, (error) => {
   if (error) {
     throw error;
   }
-  console.log(`listening on port ${PORT}`);
+  console.log("app listening on port 3000!");
 });

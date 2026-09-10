@@ -10,45 +10,14 @@ try {
 // DROP TABLE IF EXISTS messages;
 // the above can be added or removed from the start as needed
 const SQL = `
-DROP TABLE IF EXISTS category_items;
-DROP TABLE IF EXISTS categories;
-DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS users;
 
-CREATE TABLE IF NOT EXISTS categories (
-  name VARCHAR (255),
-  description VARCHAR (255),
-  PRIMARY KEY (name)
-);
-CREATE TABLE IF NOT EXISTS items (
-  name VARCHAR (255),
-  description VARCHAR (255),
-  stock INTEGER,
-  PRIMARY KEY (name)
-);
-CREATE TABLE IF NOT EXISTS category_items (
-  category_name VARCHAR (255),
-  item_name VARCHAR (255),
-  PRIMARY KEY (category_name, item_name),
-  FOREIGN KEY (category_name) REFERENCES categories(name) ON DELETE CASCADE,
-  FOREIGN KEY (item_name) REFERENCES items(name) ON DELETE CASCADE
+CREATE TABLE users (
+   id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+   username VARCHAR ( 255 ),
+   password VARCHAR ( 255 )
 );
 
-INSERT INTO categories (name, description) 
-VALUES
-  ('food', 'stuff you eat'),
-  ('protein', 'good source of medium-term energy'),
-  ('toys', 'Items you really don''t want your toddlers to eat');
-INSERT INTO items (name, description, stock) 
-VALUES
-  ('watermelon', 'a watery melon', 11),
-  ('steak', 'some good quality beef', 4), 
-  ('Pokemon Cards', 'Playing cards. If you see a scalper, do us all a favor and hospitalize them.', 100);
-INSERT INTO category_items (category_name, item_name) 
-VALUES
-  ('food', 'watermelon'),
-  ('food', 'steak'),
-  ('protein', 'steak'),
-  ('toys', 'Pokemon Cards');
 `;
 
 /*

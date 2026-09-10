@@ -1,5 +1,7 @@
-# nodejs-express-template
-Repository Template for NodeJS + Express.
+# odin-authentication-basics-practice
+
+Odin Project, NodeJS Course, Authentication, Authentication Basics, practicing contents.
+
 
 Run `npm install` to install all packages/dev dependencies.<br>
 Run `npm outdated` to check if any packages are outdated (can generally ignore yellow packages: current version is the wanted version, but not the latest version).<br>
