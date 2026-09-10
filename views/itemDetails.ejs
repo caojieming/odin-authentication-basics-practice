@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <!-- set styling file -->
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/itemDetails.css">
+    <title>Item Details</title>
+  </head>
+  <body>
+    <main>
+      <!-- if category_name is passed to this page, that means this item page was accessed from a category, so link back to the category. Otherwise, go home -->
+      <a href="<%= category_name ? `/category/${category_name}` : '/' %>"><button>Back</button></a>
+
+      <h1><%= item.name %></h1>
+
+      <form method="POST" action="<%= category_name ? `/category/${category_name}/editItem/${item.name}` : `/editItem/${item.name}` %>">
+        <label for="description">Description:</label>
+        <input name="description" type="text" placeholder="input description here" value="<%= item.description %>">
+        <br>
+        <label for="stock">Stock:</label>
+        <input name="stock" type="text" placeholder="input stock quantity here" value="<%= item.stock %>">
+        <!-- TODO: add a list of other categories this item is in -->
+        <br><br>
+        <button>Change item details!</button>
+      </form>
+      
+      <p>Categories this item is a part of:</p>
+      <div class="list">
+        <% for (let i = 0; i < item_categories.length; i++) { 
+          curCat = item_categories[i]; %>
+          <div class="category">
+            <form method="POST" action="/deleteItemCategory/<%= item.name %>/<%= curCat.name %>">
+              <button class="delete-btn">Delete from this category</button>
+            </form>
+            <a href="/category/<%= curCat.name %>" ><button class="category-btn"><%= curCat.name %></button></a>
+          </div>
+        <% } %>
+      </div>
+
+      <form action="<%= category_name ? `/category/${category_name}/deleteItem/${item.name}` : `/deleteItem/${item.name}` %>" method="post">
+        <button class="delete-btn" type="submit">Delete item completely</button>
+      </form>
+    </main>
+    
+    <%- include('./partials/footer') %>
+  </body>
+</html>

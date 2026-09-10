@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <!-- set styling file -->
+    <link rel="stylesheet" href="/css/base.css">
+    <title>New Item</title>
+  </head>
+  <body>
+    <main>
+      <a href="<%= category_name ? `/category/${category_name}` : '/' %>"><button>Back</button></a>
+
+      <h1>Create new Item!</h1>
+
+      <%- include("partials/errors.ejs") %>
+      
+      <form method="POST" action="<%= category_name ? `/category/${category_name}/itemForm` : '/itemForm' %>">
+        <label for="name">Name:</label>
+        <input name="name" type="text" placeholder="input item name">
+        <br>
+        <label for="description">Description:</label>
+        <input name="description" type="text" placeholder="input item description">
+        <br>
+        <label for="stock">Stock:</label>
+        <input name="stock" type="text" placeholder="input stock quantity">
+        <br><br>
+        <button>Submit</button>
+      </form>
+    </main>
+    
+    <%- include('./partials/footer') %>
+  </body>
+</html>

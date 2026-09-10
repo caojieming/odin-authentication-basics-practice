@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <!-- set styling file -->
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <title>Homepage</title>
+  </head>
+  <body>
+    <main>
+
+      <section id="section-categories">
+        <h1>Inventory - Categories</h1>
+
+        <a href="/categoryForm"><button>Add new category</button></a>
+      
+        <div class="list">
+          <% for (let i = 0; i < categories.length; i++) { 
+            curCat = categories[i]; %>
+            <div class="category">
+              <form method="POST" action="/deleteCategory/<%= curCat.name %>">
+                <button class="delete-btn">Delete</button>
+              </form>
+              <a href="/category/<%= curCat.name %>" ><button class="category-btn"><%= curCat.name %></button></a>
+              <p><%= `Description: ${curCat.description}` %></p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+
+
+      <section id="section-items">
+        <h1>Inventory - Items</h1>
+
+        <a href="/itemForm"><button>Add new item</button></a>
+
+        <div class="list">
+          <% for (let i = 0; i < items.length; i++) { 
+            curItem = items[i]; %>
+            <div class="item">
+              <form method="POST" action="/deleteItem/<%= curItem.name %>">
+                <button class="delete-btn">Delete</button>
+              </form>
+              <a href="/item/<%= curItem.name %>" ><button class="item-btn"><%= curItem.name %></button></a>
+              <p><%= `Description: ${curItem.description}` %></p>
+              <p><%= `Stock: ${curItem.stock}` %></p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+
+    </main>
+
+    <%- include('./partials/footer') %>
+  </body>
+</html>
