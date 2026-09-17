@@ -13,11 +13,6 @@ const LocalStrategy = require('passport-local').Strategy;
 
 const pool = new Pool({
   // add your configuration
-  // host: process.env.HOST, 
-  // user: process.env.USER,
-  // database: process.env.DATABASE,
-  // password: process.env.PASSWORD,
-  // port: Number(process.env.DBPORT)
   connectionString: process.env.LOCAL_DB_URL
 });
 
@@ -30,8 +25,48 @@ app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 
 
-// this is ew, but this is just meant to be practice
-app.get("/", (req, res) => res.render("index"));
+// adds strategy to passport that searches for username in DB, and checks if the input password is correct
+passport.use(
+  new LocalStrategy(async (username, password, done) => {
+    try {
+      const { rows } = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+      const user = rows[0];
+
+      if (!user) {
+        return done(null, false, { message: "Incorrect username" });
+      }
+      if (user.password !== password) {
+        return done(null, false, { message: "Incorrect password" });
+      }
+      return done(null, user);
+    } catch(err) {
+      return done(err);
+    }
+  })
+);
+
+// stores data in current session data (user login)
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// retrieves data from current session data (user login)
+passport.deserializeUser(async (id, done) => {
+  try {
+    const { rows } = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+    const user = rows[0];
+
+    done(null, user);
+  } catch(err) {
+    done(err);
+  }
+});
+
+
+// no dedicated router file is ew, but this is just meant to be practice
+app.get("/", (req, res) => {
+  res.render("index", { user: req.user });
+});
 
 app.get("/sign-up", (req, res) => res.render("sign-up-form"));
 app.post("/sign-up", async (req, res, next) => {
@@ -44,6 +79,26 @@ app.post("/sign-up", async (req, res, next) => {
   } catch(err) {
     return next(err);
   }
+});
+
+// passport.authenticate("local", ...) applys the LocalStrategy stored in passport
+app.post(
+  "/log-in",
+  passport.authenticate("local", {
+    successRedirect: "/",
+    failureRedirect: "/",
+    failureMessage: true,
+  })
+);
+
+// logout() is built into passport
+app.get("/log-out", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/");
+  });
 });
 
 
