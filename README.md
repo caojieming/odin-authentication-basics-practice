@@ -21,3 +21,4 @@ Default server link: http://localhost:8080/
 - express-session
 - passport
 - passport-local
+- bcryptjs

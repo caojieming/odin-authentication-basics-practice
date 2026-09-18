@@ -3,13 +3,13 @@ try {
   process.loadEnvFile();
 } catch(error) {}
 
-
 const path = require("node:path");
 const { Pool } = require("pg");
 const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require("bcryptjs");
 
 const pool = new Pool({
   // add your configuration
@@ -20,9 +20,18 @@ const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
+
+
+// middleware
 app.use(session({ secret: "cats", resave: false, saveUninitialized: false }));
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
+// allows user to be stored as currentUser in locals, so you won’t have to manually pass it into all of the controllers in which you need it (just reference locals.currentUser)
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user;
+  next();
+});
+
 
 
 // adds strategy to passport that searches for username in DB, and checks if the input password is correct
@@ -32,11 +41,17 @@ passport.use(
       const { rows } = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
       const user = rows[0];
 
+      
+
+
       if (!user) {
         return done(null, false, { message: "Incorrect username" });
       }
-      if (user.password !== password) {
-        return done(null, false, { message: "Incorrect password" });
+      // signin password is compared with the hashed DB password (I assume it internally unhashes the DB password + removes salt, then compares)
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        // passwords do not match!
+        return done(null, false, { message: "Incorrect password" })
       }
       return done(null, user);
     } catch(err) {
@@ -63,6 +78,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 
+
 // no dedicated router file is ew, but this is just meant to be practice
 app.get("/", (req, res) => {
   res.render("index", { user: req.user });
@@ -70,15 +86,15 @@ app.get("/", (req, res) => {
 
 app.get("/sign-up", (req, res) => res.render("sign-up-form"));
 app.post("/sign-up", async (req, res, next) => {
-  try {
-    await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
-      req.body.username,
-      req.body.password,
-    ]);
-    res.redirect("/");
-  } catch(err) {
-    return next(err);
-  }
+ try {
+  // encrypts input password by first adding a number of extra random chars to the end of the input (num in 2nd arg, this is known as "salting"), then hashes the result
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [req.body.username, hashedPassword]);
+  res.redirect("/");
+ } catch (error) {
+    console.error(error);
+    next(error);
+   }
 });
 
 // passport.authenticate("local", ...) applys the LocalStrategy stored in passport
@@ -100,6 +116,7 @@ app.get("/log-out", (req, res, next) => {
     res.redirect("/");
   });
 });
+
 
 
 app.listen(3000, (error) => {
